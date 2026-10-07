@@ -9,7 +9,9 @@ UPSERT_CHUNK_SIZE = 1000
 
 
 def get_engine(url: str = config.DATABASE_URL) -> Engine:
-    return create_engine(url)
+    # Make every session UTC, so timestamps come back as UTC whatever timezone
+    # the database server or host machine is set to.
+    return create_engine(url, connect_args={"options": "-c timezone=UTC"})
 
 
 def upsert(conn: Connection, model, rows: list[dict]) -> None:

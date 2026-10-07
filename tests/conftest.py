@@ -5,10 +5,11 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 
 from formcast import config  # noqa: F401  (loads .env so TEST_DATABASE_URL is set)
+from formcast.db import get_engine
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = Path(__file__).resolve().parent / "data"
@@ -45,7 +46,7 @@ def fake_client() -> FakeFPLClient:
 
 @pytest.fixture(scope="session")
 def _migrated_engine():
-    engine = create_engine(TEST_DATABASE_URL)
+    engine = get_engine(TEST_DATABASE_URL)
     try:
         with engine.connect():
             pass
@@ -68,6 +69,9 @@ def engine(_migrated_engine):
     """A migrated test database, emptied before each test."""
     with _migrated_engine.begin() as conn:
         conn.execute(
-            text("TRUNCATE player_gameweek_stats, fixtures, players, gameweeks, teams")
+            text(
+                "TRUNCATE predictions, prediction_runs, player_gameweek_stats, fixtures,"
+                " players, gameweeks, teams RESTART IDENTITY"
+            )
         )
     return _migrated_engine

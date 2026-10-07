@@ -1,7 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, Index, Numeric
+from sqlalchemy import DateTime, ForeignKey, Index, Numeric, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -95,3 +96,48 @@ class PlayerGameweekStats(Base):
     selected: Mapped[int]  # number of FPL managers owning the player that gameweek
 
     __table_args__ = (Index("ix_pgs_gameweek", "gameweek"),)
+
+
+class PredictionRun(Base):
+    """One daily refresh. The API serves the newest run, never computing its own.
+
+    A run and all its rows are written in one transaction, so a run that exists
+    is always complete.
+    """
+
+    __tablename__ = "prediction_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    gameweek: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    # The ModelParams and RankParams that produced it, for tracing old results.
+    params: Mapped[dict] = mapped_column(JSONB)
+
+
+class Prediction(Base):
+    """One player's place on one list in one run.
+
+    Display fields (name, club, price...) are copied in rather than joined from
+    players at read time, so a run keeps showing what was true when it was made
+    even after the next ingestion overwrites players.
+    """
+
+    __tablename__ = "predictions"
+
+    run_id: Mapped[int] = mapped_column(
+        ForeignKey("prediction_runs.id", ondelete="CASCADE"), primary_key=True
+    )
+    list_name: Mapped[str] = mapped_column(primary_key=True)  # captains/differentials/avoid
+    rank: Mapped[int] = mapped_column(primary_key=True)  # 1 = top of the list
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"))
+    web_name: Mapped[str]
+    team: Mapped[str]  # short name, e.g. "ARS"
+    position: Mapped[str]
+    price: Mapped[Decimal] = mapped_column(Numeric(4, 1))
+    ownership_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    opponent: Mapped[str]  # e.g. "SUN (A)", "blank"
+    form: Mapped[float]
+    fixture_multiplier: Mapped[float | None]  # null when the player has no fixture
+    predicted_points: Mapped[float]
+    reasons: Mapped[str | None]  # avoid list only
+    news: Mapped[str]
