@@ -26,6 +26,9 @@ class Gameweek(Base):
     finished: Mapped[bool]
     is_current: Mapped[bool]
     is_next: Mapped[bool]
+    # Managers who played this gameweek; null until it starts. Dividing a player's
+    # `selected` by this gives their ownership % as it was that week.
+    ranked_count: Mapped[int | None]
 
 
 class Player(Base):
@@ -42,6 +45,9 @@ class Player(Base):
     price: Mapped[Decimal] = mapped_column(Numeric(4, 1))  # £m
     ownership_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
     status: Mapped[str]  # a=available, d=doubtful, i=injured, s=suspended, u=unavailable
+    # FPL's % chance of playing next gameweek (25/50/75/100); null means no news.
+    chance_of_playing: Mapped[int | None]
+    news: Mapped[str]  # e.g. "Knee injury - 75% chance of playing"; "" when none
 
 
 class Fixture(Base):

@@ -249,3 +249,4 @@ def test_output_is_sorted_and_stamped_with_gameweek():
     )
     assert list(preds["player_id"]) == [2, 3, 1]
     assert (preds["gameweek"] == 2).all()
+    assert (preds["window_gameweeks"] == 1).all()  # only GW1 exists before GW2

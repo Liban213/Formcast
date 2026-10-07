@@ -59,7 +59,7 @@ def predict_points(
     fixtures: id, gameweek, home_team_id, away_team_id, home_score, away_score, finished
 
     Returns one row per player, highest predicted_points first: player_id,
-    gameweek, form, avg_minutes, total_minutes, fixtures_played, n_fixtures,
+    gameweek, window_gameweeks, form, avg_minutes, total_minutes, fixtures_played, n_fixtures,
     fixture_multiplier, predicted_points.
     """
     form = weighted_form(history, target_gw, params.n_gameweeks, params.half_life)
@@ -97,6 +97,8 @@ def predict_points(
         predicted_points=("points", "sum"),  # NaN for a blank sums to 0
     )
     result.insert(0, "gameweek", target_gw)
+    # Gameweeks of form actually available: fewer than n_gameweeks early in the season.
+    result.insert(1, "window_gameweeks", min(params.n_gameweeks, target_gw - 1))
     return (
         result.reset_index()
         .astype({"total_minutes": int, "fixtures_played": int})

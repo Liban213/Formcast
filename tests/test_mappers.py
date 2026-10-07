@@ -39,6 +39,8 @@ def test_map_gameweeks_flags_current_and_next():
     assert gameweeks[5]["is_current"] and gameweeks[5]["finished"]
     assert gameweeks[6]["is_next"] and not gameweeks[6]["finished"]
     assert gameweeks[6]["deadline_time"] == datetime(2026, 10, 10, 10, 0, tzinfo=timezone.utc)
+    assert gameweeks[5]["ranked_count"] == 10833606
+    assert gameweeks[6]["ranked_count"] is None  # sent as 0 before the week starts
 
 
 def test_map_players_converts_price_ownership_and_position():
@@ -53,6 +55,8 @@ def test_map_players_converts_price_ownership_and_position():
         "price": Decimal("6.1"),  # now_cost 61 is tenths of a million
         "ownership_pct": Decimal("42.3"),  # arrives as the string "42.3"
         "status": "a",
+        "chance_of_playing": None,  # no injury news
+        "news": "",
     }
     assert players[124]["position"] == "MID"
     assert players[124]["second_name"] == "Groß"

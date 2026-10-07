@@ -32,6 +32,7 @@ def map_gameweeks(bootstrap: dict) -> list[dict]:
             "finished": e["finished"],
             "is_current": e["is_current"],
             "is_next": e["is_next"],
+            "ranked_count": e["ranked_count"] or None,  # FPL sends 0 for future weeks
         }
         for e in bootstrap["events"]
     ]
@@ -50,6 +51,8 @@ def map_players(bootstrap: dict) -> list[dict]:
             "price": _tenths(p["now_cost"]),
             "ownership_pct": Decimal(p["selected_by_percent"]),
             "status": p["status"],
+            "chance_of_playing": p["chance_of_playing_next_round"],
+            "news": p["news"],
         }
         for p in bootstrap["elements"]
     ]

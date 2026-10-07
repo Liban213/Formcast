@@ -7,8 +7,8 @@ from sqlalchemy.engine import Engine
 
 def load_players(engine: Engine) -> pd.DataFrame:
     df = pd.read_sql(
-        "SELECT id AS player_id, web_name, team_id, position, price, ownership_pct, status"
-        " FROM players",
+        "SELECT id AS player_id, web_name, team_id, position, price, ownership_pct, status,"
+        " chance_of_playing, news FROM players",
         engine,
     )
     # NUMERIC columns arrive as Decimal objects; pandas maths wants floats.
@@ -33,6 +33,13 @@ def load_fixtures(engine: Engine) -> pd.DataFrame:
 
 def load_teams(engine: Engine) -> pd.DataFrame:
     return pd.read_sql("SELECT id AS team_id, short_name FROM teams", engine)
+
+
+def load_gameweeks(engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(
+        "SELECT id, deadline_time, finished, is_next, ranked_count FROM gameweeks ORDER BY id",
+        engine,
+    )
 
 
 def next_gameweek(engine: Engine) -> int | None:
